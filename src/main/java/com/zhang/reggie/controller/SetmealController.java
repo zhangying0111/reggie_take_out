@@ -14,6 +14,8 @@ import com.zhang.reggie.service.SetmealService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
@@ -42,6 +44,7 @@ public class SetmealController {
      * @return
      */
     @PostMapping
+    @CacheEvict(value = "setmealCache",allEntries = true) //表示删除这个分类下的所有数据
     public R<String> save(@RequestBody SetmealDto setmealDto){
         log.info("套餐信息 : {}",setmealDto.toString());
         setmealService.saveWithDish(setmealDto);
@@ -88,6 +91,7 @@ public class SetmealController {
     }
 
     @DeleteMapping
+    @CacheEvict(value = "setmealCache",allEntries = true)
     public R<String> remove(@RequestParam List<Long> ids){
         setmealService.removeWithDish(ids);
         return R.success("套餐删除成功");
@@ -98,6 +102,7 @@ public class SetmealController {
      * @return
      */
     @GetMapping("/list")
+    @Cacheable(value = "setmealCache",key = "#setmeal.categoryId+'_'+#setmeal.status")
     //注意这理Setmeal setmeal 不需要jia@RequestBody 因为前端传过来的参数不是json数据，而是键值对
     public R<List<Setmeal>> list( Setmeal setmeal){
         //条件构造器
